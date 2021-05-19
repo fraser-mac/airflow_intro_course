@@ -3,10 +3,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.subdag import SubDagOperator
 from airflow.utils.task_group import TaskGroup
 
-from subdags.subdag_parallel_dag import subdag_parallel_dag
 from datetime import datetime
-
-
 
 default_args = {
     'start_date': datetime(2020, 1, 1)
@@ -24,9 +21,16 @@ with DAG('parallel_dag', schedule_interval='@daily', default_args=default_args, 
             bash_command='sleep 3'
         )
 
-        third_task = BashOperator(
-            task_id='third_task',
-            bash_command='sleep 3'
+        with TaskGroup('spark_tasks') as spark_tasks:
+            third_task = BashOperator(
+                task_id='third_task',
+                bash_command='sleep 3'
+        )
+
+        with TaskGroup('flink_tasks') as flink_tasks:
+            third_task = BashOperator(
+                task_id='third_task',
+                bash_command='sleep 3'
         )
 
     fourth_task = BashOperator(
